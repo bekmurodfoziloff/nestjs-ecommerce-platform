@@ -12,7 +12,7 @@ export class UsersService {
     private usersRepository: Repository<User>
   ) {}
 
-  async getUserByEmail(email: string) {
+  async getUserByEmail(email: string): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { email } });
     if (user) {
       return user;
@@ -20,20 +20,20 @@ export class UsersService {
     throw new HttpException('User with this email does not exist', HttpStatus.NOT_FOUND);
   }
 
-  async getUserById(id: number) {
+  async getUserById(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (user) {
       return user;
     }
   }
 
-  async createUser(userData: CreateUserDto) {
+  async createUser(userData: CreateUserDto): Promise<User> {
     const newUser = this.usersRepository.create(userData);
     await this.usersRepository.save(newUser);
     return newUser;
   }
 
-  async findUserByEmail(email: string) {
+  async findUserByEmail(email: string): Promise<User> {
     return await this.usersRepository.findOne({ where: { email } });
   }
 
@@ -44,7 +44,7 @@ export class UsersService {
     });
   }
 
-  async getUserIfRefreshTokenMatches(refreshToken: string, userId: number) {
+  async getUserIfRefreshTokenMatches(refreshToken: string, userId: number): Promise<User> {
     const user = await this.getUserById(userId);
     const isRefreshTokenMatching = await bcrypt.compare(refreshToken, user.currentHashedRefreshToken);
     if (isRefreshTokenMatching) {
@@ -52,7 +52,7 @@ export class UsersService {
     }
   }
 
-  async removeRefreshToken(userId: number) {
+  async removeRefreshToken(userId: number): Promise<any> {
     return await this.usersRepository.update(userId, {
       currentHashedRefreshToken: null
     });

@@ -5,35 +5,32 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  OneToMany
+  ManyToOne
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
-import Product from '../products/product.entity';
+import User from '../users/user.entity';
 
 @Entity()
-class User {
+class Product {
   @PrimaryGeneratedColumn()
   public id: number;
 
   @Column({ unique: true })
-  public email: string;
+  public name: string;
 
   @Column()
-  public firstName: string;
+  public description: string;
 
   @Column()
-  public lastName: string;
+  public SKU: string;
 
   @Column()
-  @Exclude()
-  public password: string;
+  public imageURL: string;
 
-  @Column({ nullable: true })
-  @Exclude()
-  public currentHashedRefreshToken?: string;
+  @Column()
+  public price: number;
 
-  @OneToMany(() => Product, (product) => product.owner)
-  public products: Product[];
+  @ManyToOne(() => User, (user) => user.products)
+  public owner: User;
 
   @CreateDateColumn({ type: 'timestamp' })
   public createdAt: Date;
@@ -45,4 +42,4 @@ class User {
   public deletedAt: Date;
 }
 
-export default User;
+export default Product;
