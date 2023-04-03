@@ -1,43 +1,32 @@
 import {
   Column,
   Entity,
+  ManyToMany,
   PrimaryGeneratedColumn,
+  ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
-  ManyToOne,
-  ManyToMany,
-  JoinTable
+  DeleteDateColumn
 } from 'typeorm';
+import Product from '../products/product.entity';
 import User from '../users/user.entity';
-import Category from '../categories/category.entity';
 
 @Entity()
-class Product {
+class Category {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column({ unique: true })
+  @Column()
   public name: string;
 
   @Column()
   public description: string;
 
-  @Column()
-  public SKU: string;
-
-  @Column()
-  public imageURL: string;
-
-  @Column()
-  public price: number;
-
   @ManyToOne(() => User, (user) => user.products)
   public owner: User;
 
-  @ManyToMany(() => Category, (category: Category) => category.products)
-  @JoinTable()
-  public categories: Category[];
+  @ManyToMany(() => Product, (product: Product) => product.categories)
+  public products: Product[];
 
   @CreateDateColumn({ type: 'timestamp' })
   public createdAt: Date;
@@ -49,4 +38,4 @@ class Product {
   public deletedAt: Date;
 }
 
-export default Product;
+export default Category;

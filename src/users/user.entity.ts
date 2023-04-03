@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import Product from '../products/product.entity';
+import Category from '../categories/category.entity';
 
 @Entity()
 class User {
@@ -34,6 +35,9 @@ class User {
 
   @OneToMany(() => Product, (product) => product.owner)
   public products: Product[];
+
+  @OneToMany(() => Category, (category) => category.owner)
+  public categories: Category[];
 
   @CreateDateColumn({ type: 'timestamp' })
   public createdAt: Date;

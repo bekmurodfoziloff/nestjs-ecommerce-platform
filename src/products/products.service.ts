@@ -26,7 +26,7 @@ export class ProductsService {
   }
 
   async getProductById(id: number): Promise<Product> {
-    const product = await this.productsRepository.findOne({ where: { id }, relations: ['owner'] });
+    const product = await this.productsRepository.findOne({ where: { id }, relations: ['owner', 'categories'] });
     if (!product) {
       throw new ProductNotFoundException(id);
     }
@@ -44,7 +44,7 @@ export class ProductsService {
 
   async updateProduct(id: number, productData: UpdateProductDto): Promise<Product> {
     await this.productsRepository.update(id, productData);
-    const updatedProduct = await this.productsRepository.findOne({ where: { id }, relations: ['owner'] });
+    const updatedProduct = await this.productsRepository.findOne({ where: { id }, relations: ['owner', 'categories'] });
     if (!updatedProduct) {
       throw new ProductNotFoundException(id);
     }
