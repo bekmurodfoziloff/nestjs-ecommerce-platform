@@ -18,7 +18,7 @@ import { Response } from 'express';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/createProduct.dto';
 import UpdateProductDto from './dto/updateProduct.dto';
-import { FilterProductDto } from './dto/filterProduct.dto';
+import FilterProductDto from './dto/filterProduct.dto';
 import RequestWithUser from '../authentication/interfaces/requestWithUser.interface';
 import FindOneParams from '../utils/findOneParams';
 import JwtAuthenticationGuard from '../authentication/guards/jwt-authentication.guard';
@@ -29,10 +29,10 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  async getProducts(@Query() filterProduct: FilterProductDto, @Res() response: Response) {
+  async getProducts(@Query() filterProductData: FilterProductDto, @Res() response: Response) {
     try {
-      if (Object.keys(filterProduct).length) {
-        const filteredProducts = await this.productsService.getFilteredProducts(filterProduct);
+      if (Object.keys(filterProductData).length) {
+        const filteredProducts = await this.productsService.getFilteredProducts(filterProductData);
         response.status(HttpStatus.OK).json(filteredProducts);
       } else {
         const products = await this.productsService.getAllProducts();

@@ -13,11 +13,29 @@ export class ProductsService {
   constructor(@InjectRepository(Product) private readonly productsRepository: Repository<Product>) {}
 
   async getFilteredProducts(filterProductData: FilterProductDto): Promise<Product[]> {
-    const { search } = filterProductData;
-    let products = await this.getAllProducts();
+    const { search, categories, priceFrom, priceTo } = filterProductData;
+    const queryBuilder = this.productsRepository.createQueryBuilder('product');
     if (search) {
-      products = products.filter((product) => product.name.includes(search) || product.description.includes(search));
+      queryBuilder.andWhere('product.name LIKE :search OR product.description LIKE :search', {
+        search: `%${search}%`
+      });
     }
+    if (categories) {
+      const categoryIds = [...categories];
+      if (categoryIds.length > 0) {
+        queryBuilder
+          .leftJoin('product.categories', 'category')
+          .andWhere('category.id IN (:...categoryIds)', { categoryIds });
+      }
+    }
+    if (priceFrom && priceTo) {
+      queryBuilder.andWhere('product.price BETWEEN :priceFrom AND :priceTo', { priceFrom, priceTo });
+    } else if (priceFrom) {
+      queryBuilder.andWhere('product.price >= :priceFrom', { priceFrom });
+    } else if (priceTo) {
+      queryBuilder.andWhere('product.price <= :priceTo', { priceTo });
+    }
+    const products = await queryBuilder.getMany();
     return products;
   }
 
