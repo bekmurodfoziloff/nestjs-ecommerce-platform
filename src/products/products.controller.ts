@@ -22,6 +22,9 @@ import FilterProductDto from './dto/filterProduct.dto';
 import RequestWithUser from '../authentication/interfaces/requestWithUser.interface';
 import FindOneParams from '../utils/findOneParams';
 import JwtAuthenticationGuard from '../authentication/guards/jwt-authentication.guard';
+import { RolesGuard } from '../authentication/guards/roles.guard';
+import { Roles } from '../authentication/decorators/roles.decorator';
+import { Role } from '../utils/role.enum';
 
 @Controller('product')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -54,7 +57,8 @@ export class ProductsController {
   }
 
   @Post('new')
-  @UseGuards(JwtAuthenticationGuard)
+  @UseGuards(JwtAuthenticationGuard, RolesGuard)
+  @Roles(Role.Admin)
   async createProduct(
     @Body() productData: CreateProductDto,
     @Req() request: RequestWithUser,
@@ -69,7 +73,8 @@ export class ProductsController {
   }
 
   @Patch(':id/edit')
-  @UseGuards(JwtAuthenticationGuard)
+  @UseGuards(JwtAuthenticationGuard, RolesGuard)
+  @Roles(Role.Admin)
   async updateProduct(
     @Param() { id }: FindOneParams,
     @Body() productData: UpdateProductDto,
@@ -84,7 +89,8 @@ export class ProductsController {
   }
 
   @Delete(':id/delete')
-  @UseGuards(JwtAuthenticationGuard)
+  @UseGuards(JwtAuthenticationGuard, RolesGuard)
+  @Roles(Role.Admin)
   async deleteProduct(@Param() { id }: FindOneParams, @Res() response: Response) {
     try {
       const deletedProduct = await this.productsService.deleteProduct(Number(id));

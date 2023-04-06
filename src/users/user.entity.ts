@@ -10,6 +10,7 @@ import {
 import { Exclude } from 'class-transformer';
 import Product from '../products/product.entity';
 import Category from '../categories/category.entity';
+import { Role } from '../utils/role.enum';
 
 @Entity()
 class User {
@@ -32,6 +33,9 @@ class User {
   @Column({ nullable: true })
   @Exclude()
   public currentHashedRefreshToken?: string;
+
+  @Column({ type: 'enum', enum: Role, default: Role.User })
+  public role: Role;
 
   @OneToMany(() => Product, (product) => product.owner)
   public products: Product[];
