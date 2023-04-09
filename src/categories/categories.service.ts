@@ -47,7 +47,7 @@ export default class CategoriesService {
     throw new CategoryNotFoundException(id);
   }
 
-  async deleteCategory(id: number) {
+  async deleteCategory(id: number): Promise<void> {
     const deleteResponse = await this.categoriesRepository.delete(id);
     if (!deleteResponse.affected) {
       throw new CategoryNotFoundException(id);

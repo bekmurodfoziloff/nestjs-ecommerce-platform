@@ -37,7 +37,7 @@ export class UsersService {
     return await this.usersRepository.findOne({ where: { email } });
   }
 
-  async setCurrentRefreshToken(refreshToken: string, userId: number) {
+  async setCurrentRefreshToken(refreshToken: string, userId: number): Promise<void> {
     const currentHashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     await this.usersRepository.update(userId, {
       currentHashedRefreshToken

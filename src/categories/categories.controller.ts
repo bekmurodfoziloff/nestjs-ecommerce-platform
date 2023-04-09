@@ -22,7 +22,10 @@ import FindOneParams from '../utils/findOneParams';
 import RequestWithUser from '../authentication/interfaces/requestWithUser.interface';
 import { RolesGuard } from '../authentication/guards/roles.guard';
 import { Roles } from '../authentication/decorators/roles.decorator';
-import { Role } from '../utils/role.enum';
+import { Role } from '../utils/enums/role.enum';
+import { PermissionsGuard } from '../authentication/guards/permissions.guard';
+import { Permissions } from '../authentication/decorators/permissions.decorator';
+import Permission from '../utils/permission.type';
 
 @Controller('category')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -50,8 +53,9 @@ export default class CategoriesController {
   }
 
   @Post('new')
-  @UseGuards(JwtAuthenticationGuard, RolesGuard)
+  @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
+  @Permissions(Permission.UpdateCategory)
   async createCategory(
     @Body() categoryData: CreateCategoryDto,
     @Req() request: RequestWithUser,
@@ -66,8 +70,9 @@ export default class CategoriesController {
   }
 
   @Patch(':id/edit')
-  @UseGuards(JwtAuthenticationGuard, RolesGuard)
+  @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
+  @Permissions(Permission.DeleteCategory)
   async updateCategory(@Param() { id }: FindOneParams, @Body() category: UpdateCategoryDto, @Res() response: Response) {
     try {
       const updateCategory = await this.categoriesService.updateCategory(Number(id), category);
@@ -78,8 +83,9 @@ export default class CategoriesController {
   }
 
   @Delete(':id/delete')
-  @UseGuards(JwtAuthenticationGuard, RolesGuard)
+  @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
+  @Permissions(Permission.CreateCategory)
   async deleteCategory(@Param() { id }: FindOneParams, @Res() response: Response) {
     try {
       const deleteCategory = await this.categoriesService.deleteCategory(Number(id));
