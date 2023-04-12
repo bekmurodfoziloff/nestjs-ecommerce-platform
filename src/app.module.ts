@@ -20,6 +20,7 @@ import { CategoriesModule } from './categories/categories.module';
         JWT_ACCESS_TOKEN_EXPIRATION_TIME: Joi.string().required(),
         JWT_REFRESH_TOKEN_SECRET: Joi.string().required(),
         JWT_REFRESH_TOKEN_EXPIRATION_TIME: Joi.string().required(),
+        UPLOADED_FILES_DESTINATION: Joi.string().required(),
         PORT: Joi.number()
       })
     }),
