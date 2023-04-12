@@ -15,10 +15,6 @@ export class CreateProductDto {
   @IsNotEmpty()
   SKU: string;
 
-  @IsString()
-  @IsNotEmpty()
-  imageURL: string;
-
   @IsNumber()
   @IsNotEmpty()
   price: number;

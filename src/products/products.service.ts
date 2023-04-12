@@ -51,17 +51,18 @@ export class ProductsService {
     return product;
   }
 
-  async createProduct(productData: CreateProductDto, owner: User): Promise<Product> {
+  async createProduct(productData: CreateProductDto, owner: User, imageURL: string): Promise<Product> {
     const newProduct = this.productsRepository.create({
       ...productData,
-      owner
+      owner,
+      imageURL
     });
     await this.productsRepository.save(newProduct);
     return newProduct;
   }
 
-  async updateProduct(id: number, productData: UpdateProductDto): Promise<Product> {
-    await this.productsRepository.update(id, productData);
+  async updateProduct(id: number, productData: UpdateProductDto, imageURL: string): Promise<Product> {
+    await this.productsRepository.update(id, { ...productData, imageURL });
     const updatedProduct = await this.productsRepository.findOne({ where: { id }, relations: ['owner', 'categories'] });
     if (!updatedProduct) {
       throw new ProductNotFoundException(id);

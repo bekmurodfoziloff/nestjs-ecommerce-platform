@@ -23,11 +23,6 @@ export class UpdateProductDto {
   SKU: string;
 
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  imageURL: string;
-
-  @IsOptional()
   @IsNumber()
   @IsNotEmpty()
   price: number;
