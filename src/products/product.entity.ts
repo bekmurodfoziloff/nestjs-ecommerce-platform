@@ -32,7 +32,9 @@ class Product {
   @Column()
   public price: number;
 
-  @ManyToOne(() => User, (user) => user.products)
+  @ManyToOne(() => User, (user) => user.products, {
+    onDelete: 'CASCADE'
+  })
   public owner: User;
 
   @ManyToMany(() => Category, (category: Category) => category.products)

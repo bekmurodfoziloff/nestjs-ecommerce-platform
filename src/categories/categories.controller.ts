@@ -55,7 +55,7 @@ export default class CategoriesController {
   @Post('new')
   @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
-  @Permissions(Permission.UpdateCategory)
+  @Permissions(Permission.CreateCategory)
   async createCategory(
     @Body() categoryData: CreateCategoryDto,
     @Req() request: RequestWithUser,
@@ -72,7 +72,7 @@ export default class CategoriesController {
   @Patch(':id/edit')
   @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
-  @Permissions(Permission.DeleteCategory)
+  @Permissions(Permission.UpdateCategory)
   async updateCategory(@Param() { id }: FindOneParams, @Body() category: UpdateCategoryDto, @Res() response: Response) {
     try {
       const updateCategory = await this.categoriesService.updateCategory(Number(id), category);
@@ -85,11 +85,11 @@ export default class CategoriesController {
   @Delete(':id/delete')
   @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
-  @Permissions(Permission.CreateCategory)
+  @Permissions(Permission.DeleteCategory)
   async deleteCategory(@Param() { id }: FindOneParams, @Res() response: Response) {
     try {
-      const deleteCategory = await this.categoriesService.deleteCategory(Number(id));
-      response.status(HttpStatus.OK).json(deleteCategory);
+      const deletedResponse = await this.categoriesService.deleteCategory(Number(id));
+      response.status(HttpStatus.OK).json(deletedResponse);
     } catch (error) {
       response.status(error.status).json(error.message);
     }

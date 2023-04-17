@@ -22,7 +22,9 @@ class Category {
   @Column()
   public description: string;
 
-  @ManyToOne(() => User, (user) => user.products)
+  @ManyToOne(() => User, (user) => user.products, {
+    onDelete: 'CASCADE'
+  })
   public owner: User;
 
   @ManyToMany(() => Product, (product: Product) => product.categories)

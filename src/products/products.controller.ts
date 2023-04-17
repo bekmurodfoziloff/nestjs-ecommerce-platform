@@ -89,7 +89,6 @@ export class ProductsController {
   ) {
     try {
       const newProduct = await this.productsService.createProduct(productData, request.user, file.path);
-      console.log(file);
       response.status(HttpStatus.CREATED).json(newProduct);
     } catch (error) {
       response.status(error.status).json(error.message);
@@ -135,8 +134,8 @@ export class ProductsController {
   @Permissions(Permission.DeleteProduct)
   async deleteProduct(@Param() { id }: FindOneParams, @Res() response: Response) {
     try {
-      const deletedProduct = await this.productsService.deleteProduct(Number(id));
-      response.status(HttpStatus.OK).json(deletedProduct);
+      const deletedResponse = await this.productsService.deleteProduct(Number(id));
+      response.status(HttpStatus.OK).json(deletedResponse);
     } catch (error) {
       response.status(error.status).json(error.message);
     }

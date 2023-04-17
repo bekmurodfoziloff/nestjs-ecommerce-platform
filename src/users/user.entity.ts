@@ -5,13 +5,16 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  OneToMany
+  OneToMany,
+  OneToOne,
+  JoinColumn
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import Product from '../products/product.entity';
 import Category from '../categories/category.entity';
 import { Role } from '../utils/enums/role.enum';
 import Permission from '../utils/permission.type';
+import Address from './address.entity';
 
 @Entity()
 class User {
@@ -20,6 +23,9 @@ class User {
 
   @Column({ unique: true })
   public email: string;
+
+  @Column({ nullable: true })
+  public userName: string;
 
   @Column()
   public firstName: string;
@@ -30,6 +36,19 @@ class User {
   @Column()
   @Exclude()
   public password: string;
+
+  @Column({ nullable: true })
+  public telephone: string;
+
+  @Column({ nullable: true })
+  public avatar: string;
+
+  @OneToOne(() => Address, (address) => address.user, {
+    eager: true,
+    cascade: true
+  })
+  @JoinColumn()
+  public address: Address;
 
   @Column({ nullable: true })
   @Exclude()
