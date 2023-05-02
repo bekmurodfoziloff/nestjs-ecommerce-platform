@@ -31,7 +31,7 @@ export class UsersService {
   async getUserById(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['categories', 'products', 'address']
+      relations: ['categories', 'products', 'address', 'discounts']
     });
     if (user) {
       return user;
@@ -49,7 +49,7 @@ export class UsersService {
     await this.usersRepository.update(id, userData);
     const updatedUser = await this.usersRepository.findOne({
       where: { id },
-      relations: ['categories', 'products', 'address']
+      relations: ['categories', 'products', 'address', 'discounts']
     });
     if (updatedUser) {
       return updatedUser;
@@ -119,7 +119,7 @@ export class UsersService {
   async updateAddress(id: number, addressData: UpdateAddressDto): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['categories', 'products', 'address']
+      relations: ['categories', 'products', 'address', 'discounts']
     });
     user.address = addressData;
     await this.usersRepository.manager.save(user);
@@ -133,7 +133,7 @@ export class UsersService {
     await this.usersRepository.update(id, { avatar });
     const updatedUser = await this.usersRepository.findOne({
       where: { id },
-      relations: ['categories', 'products', 'address']
+      relations: ['categories', 'products', 'address', 'discounts']
     });
     if (!updatedUser) {
       throw new UserNotFoundException(id);

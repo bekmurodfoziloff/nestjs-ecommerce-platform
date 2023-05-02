@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import CreateCategoryDto from './dto/createCategory.dto';
 import Category from './category.entity';
-import UpdateCategoryDto from './dto/updateCategory';
+import UpdateCategoryDto from './dto/updateCategory.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import CategoryNotFoundException from './exceptions/categoryNotFound.exception';
@@ -18,7 +18,7 @@ export default class CategoriesService {
     return await this.categoriesRepository.find();
   }
 
-  async getCategoriesById(id: number): Promise<Category> {
+  async getCategoryById(id: number): Promise<Category> {
     const category = await this.categoriesRepository.findOne({ where: { id }, relations: ['owner', 'products'] });
     if (category) {
       return category;

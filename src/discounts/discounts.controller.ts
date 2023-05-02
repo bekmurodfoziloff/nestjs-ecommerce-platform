@@ -14,9 +14,9 @@ import {
   ClassSerializerInterceptor
 } from '@nestjs/common';
 import { Response } from 'express';
-import CategoriesService from './categories.service';
-import CreateCategoryDto from './dto/createCategory.dto';
-import UpdateCategoryDto from './dto/updateCategory.dto';
+import DiscountsService from './discounts.service';
+import CreateDiscountDto from './dto/createDiscount.dto';
+import UpdateDiscountDto from './dto/updateDiscount.dto';
 import JwtAuthenticationGuard from '../authentication/guards/jwt-authentication.guard';
 import FindOneParams from '../utils/findOneParams';
 import RequestWithUser from '../authentication/interfaces/requestWithUser.interface';
@@ -27,26 +27,26 @@ import { PermissionsGuard } from '../authentication/guards/permissions.guard';
 import { Permissions } from '../authentication/decorators/permissions.decorator';
 import Permission from '../utils/permission.type';
 
-@Controller('category')
+@Controller('discount')
 @UseInterceptors(ClassSerializerInterceptor)
-export default class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+export default class DiscountsController {
+  constructor(private readonly discountsService: DiscountsService) {}
 
   @Get()
-  async getAllCategories(@Res() response: Response) {
+  async getAllDiscounts(@Res() response: Response) {
     try {
-      const categories = await this.categoriesService.getAllCategories();
-      response.status(HttpStatus.OK).json(categories);
+      const discounts = await this.discountsService.getAllDiscounts();
+      response.status(HttpStatus.OK).json(discounts);
     } catch (error) {
       response.status(error.status).json(error.message);
     }
   }
 
   @Get(':id')
-  async getCategoryById(@Param() { id }: FindOneParams, @Res() response: Response) {
+  async getDiscountById(@Param() { id }: FindOneParams, @Res() response: Response) {
     try {
-      const category = await this.categoriesService.getCategoryById(Number(id));
-      response.status(HttpStatus.OK).json(category);
+      const discount = await this.discountsService.getDiscountById(Number(id));
+      response.status(HttpStatus.OK).json(discount);
     } catch (error) {
       response.status(error.status).json(error.message);
     }
@@ -55,15 +55,15 @@ export default class CategoriesController {
   @Post('new')
   @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
-  @Permissions(Permission.CreateCategory)
-  async createCategory(
-    @Body() categoryData: CreateCategoryDto,
+  @Permissions(Permission.CreateDiscount)
+  async createDiscount(
+    @Body() discountData: CreateDiscountDto,
     @Req() request: RequestWithUser,
     @Res() response: Response
   ) {
     try {
-      const newCategory = await this.categoriesService.createCategory(categoryData, request.user);
-      response.status(HttpStatus.CREATED).json(newCategory);
+      const newDiscount = await this.discountsService.createDiscount(discountData, request.user);
+      response.status(HttpStatus.CREATED).json(newDiscount);
     } catch (error) {
       response.status(error.status).json(error.message);
     }
@@ -72,11 +72,11 @@ export default class CategoriesController {
   @Patch(':id/edit')
   @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
-  @Permissions(Permission.UpdateCategory)
-  async updateCategory(@Param() { id }: FindOneParams, @Body() category: UpdateCategoryDto, @Res() response: Response) {
+  @Permissions(Permission.UpdateDiscount)
+  async updateDiscount(@Param() { id }: FindOneParams, @Body() discount: UpdateDiscountDto, @Res() response: Response) {
     try {
-      const updateCategory = await this.categoriesService.updateCategory(Number(id), category);
-      response.status(HttpStatus.OK).json(updateCategory);
+      const updateDiscount = await this.discountsService.updateDiscount(Number(id), discount);
+      response.status(HttpStatus.OK).json(updateDiscount);
     } catch (error) {
       response.status(error.status).json(error.message);
     }
@@ -85,10 +85,10 @@ export default class CategoriesController {
   @Delete(':id/delete')
   @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
-  @Permissions(Permission.DeleteCategory)
-  async deleteCategory(@Param() { id }: FindOneParams, @Res() response: Response) {
+  @Permissions(Permission.DeleteDiscount)
+  async deleteDiscount(@Param() { id }: FindOneParams, @Res() response: Response) {
     try {
-      const deletedResponse = await this.categoriesService.deleteCategory(Number(id));
+      const deletedResponse = await this.discountsService.deleteDiscount(Number(id));
       response.status(HttpStatus.OK).json(deletedResponse);
     } catch (error) {
       response.status(error.status).json(error.message);

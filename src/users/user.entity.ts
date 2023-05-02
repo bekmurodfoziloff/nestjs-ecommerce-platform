@@ -15,6 +15,7 @@ import Category from '../categories/category.entity';
 import { Role } from '../utils/enums/role.enum';
 import Permission from '../utils/permission.type';
 import Address from './address.entity';
+import Discount from '../discounts/discounts.entity';
 
 @Entity()
 class User {
@@ -65,6 +66,9 @@ class User {
 
   @OneToMany(() => Category, (category) => category.owner)
   public categories: Category[];
+
+  @OneToMany(() => Discount, (discount) => discount.owner)
+  public discounts: Discount[];
 
   @CreateDateColumn({ type: 'timestamp' })
   public createdAt: Date;

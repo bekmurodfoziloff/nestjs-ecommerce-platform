@@ -7,10 +7,15 @@ import UpdateProductDto from './dto/updateProduct.dto';
 import User from '../users/user.entity';
 import { FilterProductDto } from './dto/filterProduct.dto';
 import ProductNotFoundException from './exceptions/productNotFound.exception';
+import Inventory from './inventory.entity';
+import UpdateInvertoryDto from './dto/updateInvertory.dto';
 
 @Injectable()
-export class ProductsService {
-  constructor(@InjectRepository(Product) private readonly productsRepository: Repository<Product>) {}
+export default class ProductsService {
+  constructor(
+    @InjectRepository(Product) private readonly productsRepository: Repository<Product>,
+    @InjectRepository(Inventory) private readonly inventoriesRepository: Repository<Inventory>
+  ) {}
 
   async getFilteredProducts(filterProductData: FilterProductDto): Promise<Product[]> {
     const { search, categories, priceFrom, priceTo } = filterProductData;
@@ -44,7 +49,10 @@ export class ProductsService {
   }
 
   async getProductById(id: number): Promise<Product> {
-    const product = await this.productsRepository.findOne({ where: { id }, relations: ['owner', 'categories'] });
+    const product = await this.productsRepository.findOne({
+      where: { id },
+      relations: ['owner', 'categories', 'inventory', 'discount']
+    });
     if (!product) {
       throw new ProductNotFoundException(id);
     }
@@ -63,7 +71,10 @@ export class ProductsService {
 
   async updateProduct(id: number, productData: UpdateProductDto, imageURL: string): Promise<Product> {
     await this.productsRepository.update(id, { ...productData, imageURL });
-    const updatedProduct = await this.productsRepository.findOne({ where: { id }, relations: ['owner', 'categories'] });
+    const updatedProduct = await this.productsRepository.findOne({
+      where: { id },
+      relations: ['owner', 'categories', 'inventory', 'discount']
+    });
     if (!updatedProduct) {
       throw new ProductNotFoundException(id);
     }
@@ -71,13 +82,28 @@ export class ProductsService {
   }
 
   async deleteProduct(id: number): Promise<void> {
+    const product = await this.getProductById(id);
     const deletedResponse = await this.productsRepository.delete(id);
     if (!deletedResponse.affected) {
       throw new ProductNotFoundException(id);
     }
+    await this.inventoriesRepository.remove(product.inventory);
   }
 
   async getProductByName(name: string): Promise<Product> {
     return await this.productsRepository.findOne({ where: { name } });
+  }
+
+  async updateInvertory(id: number, invertoryData: UpdateInvertoryDto): Promise<Product> {
+    const product = await this.productsRepository.findOne({
+      where: { id },
+      relations: ['owner', 'categories', 'inventory', 'discount']
+    });
+    product.inventory = invertoryData;
+    await this.productsRepository.manager.save(product);
+    if (product) {
+      return product;
+    }
+    throw new ProductNotFoundException(id);
   }
 }

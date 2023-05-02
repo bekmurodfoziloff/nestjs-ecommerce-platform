@@ -7,10 +7,14 @@ import {
   DeleteDateColumn,
   ManyToOne,
   ManyToMany,
-  JoinTable
+  JoinTable,
+  OneToOne,
+  JoinColumn
 } from 'typeorm';
 import User from '../users/user.entity';
 import Category from '../categories/category.entity';
+import Inventory from './inventory.entity';
+import Discount from '../discounts/discounts.entity';
 
 @Entity()
 class Product {
@@ -40,6 +44,16 @@ class Product {
   @ManyToMany(() => Category, (category: Category) => category.products)
   @JoinTable()
   public categories: Category[];
+
+  @OneToOne(() => Inventory, (inventory: Inventory) => inventory.product, {
+    eager: true,
+    cascade: true
+  })
+  @JoinColumn()
+  public inventory: Inventory;
+
+  @ManyToOne(() => Discount, (discount) => discount.products)
+  public discount: Discount;
 
   @CreateDateColumn({ type: 'timestamp' })
   public createdAt: Date;

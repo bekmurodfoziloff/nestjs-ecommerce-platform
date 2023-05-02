@@ -17,7 +17,7 @@ import {
   UploadedFile
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ProductsService } from './products.service';
+import ProductsService from './products.service';
 import { CreateProductDto } from './dto/createProduct.dto';
 import UpdateProductDto from './dto/updateProduct.dto';
 import FilterProductDto from './dto/filterProduct.dto';
@@ -31,10 +31,11 @@ import { PermissionsGuard } from '../authentication/guards/permissions.guard';
 import { Permissions } from '../authentication/decorators/permissions.decorator';
 import Permission from '../utils/permission.type';
 import LocalFilesInterceptor from '../utils/localFiles.interceptor';
+import UpdateInvertoryDto from './dto/updateInvertory.dto';
 
 @Controller('product')
 @UseInterceptors(ClassSerializerInterceptor)
-export class ProductsController {
+export default class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
@@ -136,6 +137,23 @@ export class ProductsController {
     try {
       const deletedResponse = await this.productsService.deleteProduct(Number(id));
       response.status(HttpStatus.OK).json(deletedResponse);
+    } catch (error) {
+      response.status(error.status).json(error.message);
+    }
+  }
+
+  @Patch(':id/inventory/edit')
+  @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
+  @Roles(Role.Admin)
+  @Permissions(Permission.UpdateInventory)
+  async updateAddress(
+    @Param() { id }: FindOneParams,
+    @Body() inventoryData: UpdateInvertoryDto,
+    @Res() response: Response
+  ) {
+    try {
+      const updatedAddress = await this.productsService.updateInvertory(Number(id), inventoryData);
+      response.status(HttpStatus.OK).json(updatedAddress);
     } catch (error) {
       response.status(error.status).json(error.message);
     }
