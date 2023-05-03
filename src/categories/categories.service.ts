@@ -8,7 +8,7 @@ import CategoryNotFoundException from './exceptions/categoryNotFound.exception';
 import User from '../users/user.entity';
 
 @Injectable()
-export default class CategoriesService {
+export class CategoriesService {
   constructor(
     @InjectRepository(Category)
     private categoriesRepository: Repository<Category>

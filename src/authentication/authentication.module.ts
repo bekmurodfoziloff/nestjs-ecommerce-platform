@@ -8,9 +8,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshTokenStrategy } from './strategies/jwt-refresh-token.srategy';
+import { RedisCacheModule } from '../redisCache/redisCache.module';
 
 @Module({
-  imports: [UsersModule, PassportModule, ConfigModule, JwtModule.register({})],
+  imports: [UsersModule, PassportModule, ConfigModule, JwtModule.register({}), RedisCacheModule],
   controllers: [AuthenticationController],
   providers: [AuthenticationService, LocalStrategy, JwtStrategy, JwtRefreshTokenStrategy]
 })

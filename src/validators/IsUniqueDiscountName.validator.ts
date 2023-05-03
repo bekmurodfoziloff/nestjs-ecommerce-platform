@@ -5,7 +5,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface
 } from 'class-validator';
-import DiscountsService from '../discounts/discounts.service';
+import { DiscountsService } from '../discounts/discounts.service';
 
 @ValidatorConstraint({ async: true })
 @Injectable()

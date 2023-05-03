@@ -11,7 +11,7 @@ import Inventory from './inventory.entity';
 import UpdateInvertoryDto from './dto/updateInvertory.dto';
 
 @Injectable()
-export default class ProductsService {
+export class ProductsService {
   constructor(
     @InjectRepository(Product) private readonly productsRepository: Repository<Product>,
     @InjectRepository(Inventory) private readonly inventoriesRepository: Repository<Inventory>

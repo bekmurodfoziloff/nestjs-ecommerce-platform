@@ -22,18 +22,26 @@ import { Response } from 'express';
 import UpdateAddressDto from './dto/updateAddress.dto';
 import ChangeEmailDto from './dto/changeEmail.dto';
 import LocalFilesInterceptor from '../utils/localFiles.interceptor';
+import { RedisCacheService } from '../redisCache/redisCache.service';
 
 @Controller('user')
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService, private readonly redisCacheService: RedisCacheService) {}
 
   @Get('profile')
   @UseGuards(JwtAuthenticationGuard)
   async getUserById(@Req() req: RequestWithUser, @Res() response: Response) {
     try {
-      const user = await this.usersService.getUserById(Number(req.user.id));
-      response.status(HttpStatus.OK).json(user);
+      const { id } = req.user;
+      const cachedUser = await this.redisCacheService.getValue(`user:${id}`);
+      if (cachedUser) {
+        response.status(HttpStatus.OK).json(JSON.parse(cachedUser));
+      } else {
+        const user = await this.usersService.getUserById(Number(id));
+        await this.redisCacheService.setValue(`user:${id}`, JSON.stringify(user));
+        response.status(HttpStatus.OK).json(user);
+      }
     } catch (error) {
       response.status(error.status).json(error.message);
     }
@@ -43,7 +51,9 @@ export class UsersController {
   @UseGuards(JwtAuthenticationGuard)
   async updateUser(@Req() req: RequestWithUser, @Body() userData: UpdateUserDto, @Res() response: Response) {
     try {
-      const updatedUser = await this.usersService.updateUser(Number(req.user.id), userData);
+      const { id } = req.user;
+      const updatedUser = await this.usersService.updateUser(Number(id), userData);
+      await this.redisCacheService.setValue(`user:${id}`, JSON.stringify(updatedUser));
       response.status(HttpStatus.OK).json(updatedUser);
     } catch (error) {
       response.status(error.status).json(error.message);
@@ -54,7 +64,9 @@ export class UsersController {
   @UseGuards(JwtAuthenticationGuard)
   async deleteUser(@Req() req: RequestWithUser, @Res() response: Response) {
     try {
-      const deletedResponse = await this.usersService.deleteUser(Number(req.user.id));
+      const { id } = req.user;
+      const deletedResponse = await this.usersService.deleteUser(Number(id));
+      await this.redisCacheService.deleteValue(`user:${id}`);
       response.status(HttpStatus.OK).json(deletedResponse);
     } catch (error) {
       response.status(error.status).json(error.message);
@@ -87,7 +99,9 @@ export class UsersController {
   @UseGuards(JwtAuthenticationGuard)
   async updateAddress(@Req() req: RequestWithUser, @Body() addressData: UpdateAddressDto, @Res() response: Response) {
     try {
-      const updatedAddress = await this.usersService.updateAddress(Number(req.user.id), addressData);
+      const { id } = req.user;
+      const updatedAddress = await this.usersService.updateAddress(Number(id), addressData);
+      await this.redisCacheService.setValue(`user:${id}`, JSON.stringify(updatedAddress));
       response.status(HttpStatus.OK).json(updatedAddress);
     } catch (error) {
       response.status(error.status).json(error.message);
@@ -113,7 +127,9 @@ export class UsersController {
   )
   async addAvatar(@Req() req: RequestWithUser, @Res() response: Response, @UploadedFile() file: Express.Multer.File) {
     try {
-      const updatedUser = await this.usersService.addAvatar(Number(req.user.id), file.path);
+      const { id } = req.user;
+      const updatedUser = await this.usersService.addAvatar(Number(id), file.path);
+      await this.redisCacheService.setValue(`user:${id}`, JSON.stringify(updatedUser));
       response.status(HttpStatus.OK).json(updatedUser);
     } catch (error) {
       response.status(error.status).json(error.message);

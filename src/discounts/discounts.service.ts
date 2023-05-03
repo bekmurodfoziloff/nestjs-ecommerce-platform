@@ -8,7 +8,7 @@ import DiscountNotFoundException from './exceptions/discountNotFound.exception';
 import User from '../users/user.entity';
 
 @Injectable()
-export default class DiscountsService {
+export class DiscountsService {
   constructor(
     @InjectRepository(Discount)
     private discountsRepository: Repository<Discount>

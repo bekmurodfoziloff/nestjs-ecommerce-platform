@@ -17,7 +17,7 @@ import {
   UploadedFile
 } from '@nestjs/common';
 import { Response } from 'express';
-import ProductsService from './products.service';
+import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/createProduct.dto';
 import UpdateProductDto from './dto/updateProduct.dto';
 import FilterProductDto from './dto/filterProduct.dto';
@@ -32,11 +32,15 @@ import { Permissions } from '../authentication/decorators/permissions.decorator'
 import Permission from '../utils/permission.type';
 import LocalFilesInterceptor from '../utils/localFiles.interceptor';
 import UpdateInvertoryDto from './dto/updateInvertory.dto';
+import { RedisCacheService } from '../redisCache/redisCache.service';
 
 @Controller('product')
 @UseInterceptors(ClassSerializerInterceptor)
-export default class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+export class ProductsController {
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly redisCacheService: RedisCacheService
+  ) {}
 
   @Get()
   async getProducts(@Query() filterProductData: FilterProductDto, @Res() response: Response) {
@@ -45,8 +49,14 @@ export default class ProductsController {
         const filteredProducts = await this.productsService.getFilteredProducts(filterProductData);
         response.status(HttpStatus.OK).json(filteredProducts);
       } else {
-        const products = await this.productsService.getAllProducts();
-        response.status(HttpStatus.OK).json(products);
+        const cachedProducts = await this.redisCacheService.getValue('products');
+        if (cachedProducts) {
+          response.status(HttpStatus.OK).json(JSON.parse(cachedProducts));
+        } else {
+          const products = await this.productsService.getAllProducts();
+          await this.redisCacheService.setValue('products', JSON.stringify(products));
+          response.status(HttpStatus.OK).json(products);
+        }
       }
     } catch (error) {
       response.status(error.status).json(error.message);
@@ -56,8 +66,14 @@ export default class ProductsController {
   @Get(':id')
   async getProductById(@Param() { id }: FindOneParams, @Res() response: Response) {
     try {
-      const product = await this.productsService.getProductById(Number(id));
-      response.status(HttpStatus.OK).json(product);
+      const cachedProduct = await this.redisCacheService.getValue(`product:${id}`);
+      if (cachedProduct) {
+        response.status(HttpStatus.OK).json(JSON.parse(cachedProduct));
+      } else {
+        const product = await this.productsService.getProductById(Number(id));
+        await this.redisCacheService.setValue(`product:${id}`, JSON.stringify(product));
+        response.status(HttpStatus.OK).json(product);
+      }
     } catch (error) {
       response.status(error.status).json(error.message);
     }
@@ -90,6 +106,7 @@ export default class ProductsController {
   ) {
     try {
       const newProduct = await this.productsService.createProduct(productData, request.user, file.path);
+      await this.redisCacheService.setValue(`product:${newProduct.id}`, JSON.stringify(newProduct));
       response.status(HttpStatus.CREATED).json(newProduct);
     } catch (error) {
       response.status(error.status).json(error.message);
@@ -123,6 +140,7 @@ export default class ProductsController {
   ) {
     try {
       const updatedProduct = await this.productsService.updateProduct(Number(id), productData, file.path);
+      await this.redisCacheService.setValue(`product:${id}`, JSON.stringify(updatedProduct));
       response.status(HttpStatus.OK).json(updatedProduct);
     } catch (error) {
       response.status(error.status).json(error.message);
@@ -136,6 +154,7 @@ export default class ProductsController {
   async deleteProduct(@Param() { id }: FindOneParams, @Res() response: Response) {
     try {
       const deletedResponse = await this.productsService.deleteProduct(Number(id));
+      await this.redisCacheService.deleteValue(`product:${id}`);
       response.status(HttpStatus.OK).json(deletedResponse);
     } catch (error) {
       response.status(error.status).json(error.message);
@@ -146,14 +165,15 @@ export default class ProductsController {
   @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
   @Permissions(Permission.UpdateInventory)
-  async updateAddress(
+  async updateInvertory(
     @Param() { id }: FindOneParams,
     @Body() inventoryData: UpdateInvertoryDto,
     @Res() response: Response
   ) {
     try {
-      const updatedAddress = await this.productsService.updateInvertory(Number(id), inventoryData);
-      response.status(HttpStatus.OK).json(updatedAddress);
+      const updatedProduct = await this.productsService.updateInvertory(Number(id), inventoryData);
+      await this.redisCacheService.setValue(`product:${id}`, JSON.stringify(updatedProduct));
+      response.status(HttpStatus.OK).json(updatedProduct);
     } catch (error) {
       response.status(error.status).json(error.message);
     }

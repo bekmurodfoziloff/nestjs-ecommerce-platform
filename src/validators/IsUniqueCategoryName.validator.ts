@@ -5,7 +5,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface
 } from 'class-validator';
-import CategoriesService from 'src/categories/categories.service';
+import { CategoriesService } from 'src/categories/categories.service';
 
 @ValidatorConstraint({ async: true })
 @Injectable()
