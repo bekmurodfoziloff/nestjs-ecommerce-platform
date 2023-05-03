@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
 import { DiscountsModule } from './discounts/discounts.module';
+import { RedisCacheModule } from './redisCache/redisCache.module';
 
 @Module({
   imports: [
@@ -22,6 +23,9 @@ import { DiscountsModule } from './discounts/discounts.module';
         JWT_REFRESH_TOKEN_SECRET: Joi.string().required(),
         JWT_REFRESH_TOKEN_EXPIRATION_TIME: Joi.string().required(),
         UPLOADED_FILES_DESTINATION: Joi.string().required(),
+        REDIS_HOST: Joi.string().required(),
+        REDIS_PORT: Joi.number().required(),
+        CACHE_TTL: Joi.number().required(),
         PORT: Joi.number()
       })
     }),
@@ -30,7 +34,8 @@ import { DiscountsModule } from './discounts/discounts.module';
     UsersModule,
     ProductsModule,
     CategoriesModule,
-    DiscountsModule
+    DiscountsModule,
+    RedisCacheModule
   ],
   controllers: [],
   providers: []
