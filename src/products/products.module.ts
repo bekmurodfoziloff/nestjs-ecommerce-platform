@@ -11,6 +11,7 @@ import { RedisCacheModule } from '../redisCache/redisCache.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Product, Inventory]), ConfigModule, RedisCacheModule],
   controllers: [ProductsController],
-  providers: [ProductsService, IsUniqueProductNameValidator]
+  providers: [ProductsService, IsUniqueProductNameValidator],
+  exports: [ProductsService]
 })
 export class ProductsModule {}

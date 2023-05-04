@@ -8,6 +8,7 @@ import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
 import { DiscountsModule } from './discounts/discounts.module';
 import { RedisCacheModule } from './redisCache/redisCache.module';
+import { CartsModule } from './carts/carts.module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { RedisCacheModule } from './redisCache/redisCache.module';
     ProductsModule,
     CategoriesModule,
     DiscountsModule,
-    RedisCacheModule
+    RedisCacheModule,
+    CartsModule
   ],
   controllers: [],
   providers: []

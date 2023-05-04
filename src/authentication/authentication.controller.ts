@@ -67,6 +67,7 @@ export class AuthenticationController {
     try {
       await this.usersService.removeRefreshToken(request.user.id);
       request.res.setHeader('Set-Cookie', this.authenticationService.getCookiesForLogOut());
+      response.sendStatus(HttpStatus.OK);
     } catch (error) {
       response.status(error.status).json(error.message);
     }
