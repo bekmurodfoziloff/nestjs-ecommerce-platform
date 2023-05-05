@@ -40,12 +40,12 @@ export class ProductsService {
     } else if (priceTo) {
       queryBuilder.andWhere('product.price <= :priceTo', { priceTo });
     }
-    const products = await queryBuilder.getMany();
+    const products = await queryBuilder.orderBy('product.createdAt', 'DESC').getMany();
     return products;
   }
 
   async getAllProducts(): Promise<Product[]> {
-    return await this.productsRepository.find();
+    return await this.productsRepository.find({ order: { createdAt: 'DESC' } });
   }
 
   async getProductById(id: number): Promise<Product> {

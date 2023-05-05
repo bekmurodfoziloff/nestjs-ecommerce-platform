@@ -15,6 +15,7 @@ import {
   Delete
 } from '@nestjs/common';
 import { Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 import JwtAuthenticationGuard from '../authentication/guards/jwt-authentication.guard';
 import { CartsService } from './carts.service';
 import { RedisCacheService } from '../redisCache/redisCache.service';
@@ -26,12 +27,16 @@ import UpdateCartDto from './dto/updateCart.dto';
 @UseGuards(JwtAuthenticationGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 export class CartsController {
-  constructor(private readonly cartsService: CartsService, private readonly redisCacheService: RedisCacheService) {}
+  constructor(
+    private readonly cartsService: CartsService,
+    private readonly redisCacheService: RedisCacheService,
+    protected readonly configService: ConfigService
+  ) {}
 
   @Get()
   async getCart(@Req() request: RequestWithUser, @Res() response: Response) {
     try {
-      const cachedCart = await this.redisCacheService.getValue('cart');
+      const cachedCart = await this.redisCacheService.getValue(`cartUserId:${request.user.id}`);
       const cart = request.cookies.cart || JSON.parse(cachedCart ? cachedCart : null) || [];
       const cartItems = await this.cartsService.getcart(cart);
       response.status(HttpStatus.OK).json(cartItems);
@@ -44,10 +49,14 @@ export class CartsController {
   async createCart(@Body() cartData: CreateCartDto, @Req() request: RequestWithUser, @Res() response: Response) {
     try {
       const { productId, quantity } = cartData;
-      const cachedCart = await this.redisCacheService.getValue('cart');
+      const cachedCart = await this.redisCacheService.getValue(`cartUserId:${request.user.id}`);
       const cart = request.cookies.cart || JSON.parse(cachedCart ? cachedCart : null) || [];
       const newCart = await this.cartsService.createCart(cart, productId, quantity);
-      await this.redisCacheService.setValue('cart', JSON.stringify(newCart));
+      await this.redisCacheService.setValue(
+        `cartUserId:${request.user.id}`,
+        JSON.stringify(newCart),
+        parseInt(this.configService.get('LONG_CACHE_TTL'))
+      );
       response.cookie('cart', newCart, { httpOnly: true, secure: true });
       response.status(HttpStatus.CREATED).json(newCart);
     } catch (error) {
@@ -64,12 +73,16 @@ export class CartsController {
   ) {
     try {
       const { quantity } = cartData;
-      const cachedCart = await this.redisCacheService.getValue('cart');
+      const cachedCart = await this.redisCacheService.getValue(`cartUserId:${request.user.id}`);
       const cart = request.cookies.cart || JSON.parse(cachedCart ? cachedCart : null) || [];
       const updatedCart = await this.cartsService.updateCart(cart, productId, quantity);
-      await this.redisCacheService.setValue('cart', JSON.stringify(updatedCart));
+      await this.redisCacheService.setValue(
+        `cartUserId:${request.user.id}`,
+        JSON.stringify(updatedCart),
+        parseInt(this.configService.get('LONG_CACHE_TTL'))
+      );
       response.cookie('cart', updatedCart, { httpOnly: true, secure: true });
-      response.status(200).json(updatedCart);
+      response.status(HttpStatus.OK).json(updatedCart);
     } catch (error) {
       response.status(error.status).json(error.message);
     }
@@ -82,12 +95,16 @@ export class CartsController {
     @Res() response: Response
   ) {
     try {
-      const cachedCart = await this.redisCacheService.getValue('cart');
+      const cachedCart = await this.redisCacheService.getValue(`cartUserId:${request.user.id}`);
       const cart = request.cookies.cart || JSON.parse(cachedCart ? cachedCart : null) || [];
       const deletedCart = await this.cartsService.deleteCart(cart, productId);
-      await this.redisCacheService.setValue('cart', JSON.stringify(deletedCart));
+      await this.redisCacheService.setValue(
+        `cartUserId:${request.user.id}`,
+        JSON.stringify(deletedCart),
+        parseInt(this.configService.get('LONG_CACHE_TTL'))
+      );
       response.cookie('cart', deletedCart, { httpOnly: true, secure: true });
-      response.status(200).json(deletedCart);
+      response.status(HttpStatus.OK).json(deletedCart);
     } catch (error) {
       response.status(error.status).json(error.message);
     }

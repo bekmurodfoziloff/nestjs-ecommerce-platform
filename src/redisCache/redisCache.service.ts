@@ -10,8 +10,12 @@ export class RedisCacheService {
     return await this.cache.get(key);
   }
 
-  async setValue(key: string, value: any): Promise<void> {
-    await this.cache.set(key, value, this.configService.get('CACHE_TTL'));
+  async setValue(
+    key: string,
+    value: any,
+    expire: number = parseInt(this.configService.get('CACHE_TTL'))
+  ): Promise<void> {
+    await this.cache.set(key, value, { ttl: expire } as any);
   }
 
   async deleteValue(key: string): Promise<void> {

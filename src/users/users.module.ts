@@ -9,7 +9,7 @@ import Address from './address.entity';
 import { RedisCacheModule } from '../redisCache/redisCache.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Address]), ConfigModule, RedisCacheModule],
+  imports: [TypeOrmModule.forFeature([User, Address]), RedisCacheModule],
   controllers: [UsersController],
   providers: [UsersService, IsUniqueEmailValidator],
   exports: [UsersService]

@@ -5,7 +5,7 @@ import { redisStore } from 'cache-manager-redis-store';
 
 @Module({
   imports: [
-    CacheModule.register({
+    CacheModule.registerAsync<any>({
       isGlobal: true,
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
@@ -13,8 +13,8 @@ import { redisStore } from 'cache-manager-redis-store';
           socket: {
             host: configService.get('REDIS_HOST'),
             port: configService.get('REDIS_PORT')
-          },
-          ttl: configService.get('CACHE_TTL')
+          }
+          // ttl: parseInt(configService.get('CACHE_TTL'))
         });
         return {
           store: () => store
@@ -25,6 +25,6 @@ import { redisStore } from 'cache-manager-redis-store';
     ConfigModule
   ],
   providers: [RedisCacheService],
-  exports: [RedisCacheService]
+  exports: [RedisCacheService, ConfigModule]
 })
 export class RedisCacheModule {}

@@ -15,7 +15,7 @@ export class CategoriesService {
   ) {}
 
   async getAllCategories(): Promise<Category[]> {
-    return await this.categoriesRepository.find();
+    return await this.categoriesRepository.find({ order: { createdAt: 'DESC' } });
   }
 
   async getCategoryById(id: number): Promise<Category> {

@@ -15,7 +15,7 @@ export class DiscountsService {
   ) {}
 
   async getAllDiscounts(): Promise<Discount[]> {
-    return await this.discountsRepository.find();
+    return await this.discountsRepository.find({ order: { createdAt: 'DESC' } });
   }
 
   async getDiscountById(id: number): Promise<Discount> {
