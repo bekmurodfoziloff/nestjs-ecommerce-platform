@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class FilterProductDto {
   @IsOptional()
@@ -6,7 +6,7 @@ export class FilterProductDto {
   search: string;
 
   @IsOptional()
-  categories: string[];
+  categories: number[];
 
   @IsOptional()
   @IsString()
@@ -15,6 +15,10 @@ export class FilterProductDto {
   @IsOptional()
   @IsString()
   priceTo: string;
+
+  @IsOptional()
+  @IsNumber()
+  page: number;
 }
 
 export default FilterProductDto;

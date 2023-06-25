@@ -8,8 +8,8 @@ import {
   DeleteDateColumn,
   OneToMany
 } from 'typeorm';
-import User from '../users/user.entity';
-import Product from '../products/product.entity';
+import User from '../users/entities/user.entity';
+import Product from '../products/entities/product.entity';
 
 @Entity()
 class Discount {

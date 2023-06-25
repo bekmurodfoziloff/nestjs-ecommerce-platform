@@ -5,17 +5,28 @@ import UpdateDiscountDto from './dto/updateDiscount.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import DiscountNotFoundException from './exceptions/discountNotFound.exception';
-import User from '../users/user.entity';
+import User from '../users/entities/user.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class DiscountsService {
   constructor(
-    @InjectRepository(Discount)
-    private discountsRepository: Repository<Discount>
+    @InjectRepository(Discount) private discountsRepository: Repository<Discount>,
+    private readonly configService: ConfigService
   ) {}
 
-  async getAllDiscounts(): Promise<Discount[]> {
-    return await this.discountsRepository.find({ order: { createdAt: 'DESC' } });
+  async getAllDiscounts(page: number): Promise<Discount[]> {
+    let pageNumber = 1;
+    const pageSize = this.configService.get('PAGE_SIZE');
+    if (page) {
+      pageNumber = page;
+    }
+    return await this.discountsRepository.find({
+      order: { createdAt: 'DESC' },
+      relations: ['owner', 'products'],
+      skip: pageNumber * pageSize - pageSize,
+      take: pageSize
+    });
   }
 
   async getDiscountById(id: number): Promise<Discount> {

@@ -33,6 +33,7 @@ import Permission from '../utils/permission.type';
 import LocalFilesInterceptor from '../utils/localFiles.interceptor';
 import UpdateInvertoryDto from './dto/updateInvertory.dto';
 import { RedisCacheService } from '../redisCache/redisCache.service';
+import UpdateCategoriesDto from './dto/updateCategories.dto';
 
 @Controller('product')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -50,16 +51,16 @@ export class ProductsController {
         response.status(HttpStatus.OK).json(filteredProducts);
       } else {
         const cachedProducts = await this.redisCacheService.getValue('products');
-        if (cachedProducts) {
-          response.status(HttpStatus.OK).json(JSON.parse(cachedProducts));
+        if (cachedProducts && !filterProductData.page) {
+          response.status(HttpStatus.OK).json(cachedProducts);
         } else {
-          const products = await this.productsService.getAllProducts();
-          await this.redisCacheService.setValue('products', JSON.stringify(products));
+          const products = await this.productsService.getAllProducts(filterProductData.page);
+          await this.redisCacheService.setValue('products', products);
           response.status(HttpStatus.OK).json(products);
         }
       }
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -68,14 +69,14 @@ export class ProductsController {
     try {
       const cachedProduct = await this.redisCacheService.getValue(`product:${id}`);
       if (cachedProduct) {
-        response.status(HttpStatus.OK).json(JSON.parse(cachedProduct));
+        response.status(HttpStatus.OK).json(cachedProduct);
       } else {
         const product = await this.productsService.getProductById(Number(id));
-        await this.redisCacheService.setValue(`product:${id}`, JSON.stringify(product));
+        await this.redisCacheService.setValue(`product:${id}`, product);
         response.status(HttpStatus.OK).json(product);
       }
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -106,10 +107,10 @@ export class ProductsController {
   ) {
     try {
       const newProduct = await this.productsService.createProduct(productData, request.user, file.path);
-      await this.redisCacheService.setValue(`product:${newProduct.id}`, JSON.stringify(newProduct));
+      await this.redisCacheService.setValue(`product:${newProduct.id}`, newProduct);
       response.status(HttpStatus.CREATED).json(newProduct);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -140,10 +141,10 @@ export class ProductsController {
   ) {
     try {
       const updatedProduct = await this.productsService.updateProduct(Number(id), productData, file.path);
-      await this.redisCacheService.setValue(`product:${id}`, JSON.stringify(updatedProduct));
+      await this.redisCacheService.setValue(`product:${id}`, updatedProduct);
       response.status(HttpStatus.OK).json(updatedProduct);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -157,7 +158,7 @@ export class ProductsController {
       await this.redisCacheService.deleteValue(`product:${id}`);
       response.status(HttpStatus.OK).json(deletedResponse);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -172,10 +173,28 @@ export class ProductsController {
   ) {
     try {
       const updatedProduct = await this.productsService.updateInvertory(Number(id), inventoryData);
-      await this.redisCacheService.setValue(`product:${id}`, JSON.stringify(updatedProduct));
+      await this.redisCacheService.setValue(`product:${id}`, updatedProduct);
       response.status(HttpStatus.OK).json(updatedProduct);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
+    }
+  }
+
+  @Patch(':id/categories/edit')
+  @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
+  @Roles(Role.Admin)
+  @Permissions(Permission.UpdateInventory)
+  async updateCategories(
+    @Param() { id }: FindOneParams,
+    @Body() categoriesData: UpdateCategoriesDto,
+    @Res() response: Response
+  ) {
+    try {
+      const updatedProduct = await this.productsService.updateCategories(Number(id), categoriesData);
+      await this.redisCacheService.setValue(`product:${id}`, updatedProduct);
+      response.status(HttpStatus.OK).json(updatedProduct);
+    } catch (error) {
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 }

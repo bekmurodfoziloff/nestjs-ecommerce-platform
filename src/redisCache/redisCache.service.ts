@@ -7,7 +7,8 @@ export class RedisCacheService {
   constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache, private readonly configService: ConfigService) {}
 
   async getValue(key: string): Promise<any> {
-    return await this.cache.get(key);
+    const cache: any = await this.cache.get(key);
+    return JSON.parse(cache);
   }
 
   async setValue(
@@ -15,7 +16,7 @@ export class RedisCacheService {
     value: any,
     expire: number = parseInt(this.configService.get('CACHE_TTL'))
   ): Promise<void> {
-    await this.cache.set(key, value, { ttl: expire } as any);
+    await this.cache.set(key, JSON.stringify(value), { ttl: expire } as any);
   }
 
   async deleteValue(key: string): Promise<void> {

@@ -20,7 +20,12 @@ function LocalFilesInterceptor(options: LocalFilesInterceptorOptions): Type<Nest
       const destination = `${filesDestination}${options.path}`;
       const multerOptions: MulterOptions = {
         storage: diskStorage({
-          destination
+          destination,
+          filename(req, file, callback) {
+            const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+            const fileExtension = file.originalname.split('.').pop();
+            callback(null, `${file.fieldname}-${uniqueSuffix}.${fileExtension}`);
+          }
         }),
         fileFilter: options.fileFilter,
         limits: options.limits

@@ -11,7 +11,8 @@ import {
   HttpStatus,
   UseGuards,
   UseInterceptors,
-  ClassSerializerInterceptor
+  ClassSerializerInterceptor,
+  Query
 } from '@nestjs/common';
 import { Response } from 'express';
 import { DiscountsService } from './discounts.service';
@@ -37,18 +38,18 @@ export class DiscountsController {
   ) {}
 
   @Get()
-  async getAllDiscounts(@Res() response: Response) {
+  async getAllDiscounts(@Query('page') page: number, @Res() response: Response) {
     try {
       const cachedDiscounts = await this.redisCacheService.getValue('discounts');
       if (cachedDiscounts) {
-        response.status(HttpStatus.OK).json(JSON.parse(cachedDiscounts));
+        response.status(HttpStatus.OK).json(cachedDiscounts);
       } else {
-        const discounts = await this.discountsService.getAllDiscounts();
-        await this.redisCacheService.setValue('discounts', JSON.stringify(discounts));
+        const discounts = await this.discountsService.getAllDiscounts(page);
+        await this.redisCacheService.setValue('discounts', discounts);
         response.status(HttpStatus.OK).json(discounts);
       }
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -57,14 +58,14 @@ export class DiscountsController {
     try {
       const cachedDiscount = await this.redisCacheService.getValue(`discount:${id}`);
       if (cachedDiscount) {
-        response.status(HttpStatus.OK).json(JSON.parse(cachedDiscount));
+        response.status(HttpStatus.OK).json(cachedDiscount);
       } else {
         const discount = await this.discountsService.getDiscountById(Number(id));
-        await this.redisCacheService.setValue(`discount:${id}`, JSON.stringify(discount));
+        await this.redisCacheService.setValue(`discount:${id}`, discount);
         response.status(HttpStatus.OK).json(discount);
       }
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -82,7 +83,7 @@ export class DiscountsController {
       await this.redisCacheService.setValue(`discount:${newDiscount.id}`, newDiscount);
       response.status(HttpStatus.CREATED).json(newDiscount);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -92,11 +93,11 @@ export class DiscountsController {
   @Permissions(Permission.UpdateDiscount)
   async updateDiscount(@Param() { id }: FindOneParams, @Body() discount: UpdateDiscountDto, @Res() response: Response) {
     try {
-      const updateDiscount = await this.discountsService.updateDiscount(Number(id), discount);
-      await this.redisCacheService.setValue(`discount:${id}`, JSON.stringify(updateDiscount));
-      response.status(HttpStatus.OK).json(updateDiscount);
+      const updatedDiscount = await this.discountsService.updateDiscount(Number(id), discount);
+      await this.redisCacheService.setValue(`discount:${id}`, updatedDiscount);
+      response.status(HttpStatus.OK).json(updatedDiscount);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -110,7 +111,7 @@ export class DiscountsController {
       await this.redisCacheService.deleteValue(`discount:${id}`);
       response.status(HttpStatus.OK).json(deletedResponse);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 }

@@ -9,6 +9,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { DiscountsModule } from './discounts/discounts.module';
 import { RedisCacheModule } from './redisCache/redisCache.module';
 import { CartsModule } from './carts/carts.module';
+import { OrdersModule } from './order/orders.module';
 
 @Module({
   imports: [
@@ -27,6 +28,8 @@ import { CartsModule } from './carts/carts.module';
         REDIS_HOST: Joi.string().required(),
         REDIS_PORT: Joi.number().required(),
         CACHE_TTL: Joi.number().required(),
+        LONG_CACHE_TTL: Joi.number().required(),
+        PAGE_SIZE: Joi.number().required(),
         PORT: Joi.number()
       })
     }),
@@ -37,7 +40,8 @@ import { CartsModule } from './carts/carts.module';
     CategoriesModule,
     DiscountsModule,
     RedisCacheModule,
-    CartsModule
+    CartsModule,
+    OrdersModule
   ],
   controllers: [],
   providers: []

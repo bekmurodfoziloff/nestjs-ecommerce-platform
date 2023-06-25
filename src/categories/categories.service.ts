@@ -5,17 +5,28 @@ import UpdateCategoryDto from './dto/updateCategory.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import CategoryNotFoundException from './exceptions/categoryNotFound.exception';
-import User from '../users/user.entity';
+import User from '../users/entities/user.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CategoriesService {
   constructor(
-    @InjectRepository(Category)
-    private categoriesRepository: Repository<Category>
+    @InjectRepository(Category) private categoriesRepository: Repository<Category>,
+    private readonly configService: ConfigService
   ) {}
 
-  async getAllCategories(): Promise<Category[]> {
-    return await this.categoriesRepository.find({ order: { createdAt: 'DESC' } });
+  async getAllCategories(page: number): Promise<Category[]> {
+    let pageNumber = 1;
+    const pageSize = this.configService.get('PAGE_SIZE');
+    if (page) {
+      pageNumber = page;
+    }
+    return await this.categoriesRepository.find({
+      order: { createdAt: 'DESC' },
+      relations: ['owner', 'products'],
+      skip: pageNumber * pageSize - pageSize,
+      take: pageSize
+    });
   }
 
   async getCategoryById(id: number): Promise<Category> {

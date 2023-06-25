@@ -6,16 +6,16 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
-  OneToOne,
-  JoinColumn
+  OneToOne
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import Product from '../products/product.entity';
-import Category from '../categories/category.entity';
-import { Role } from '../utils/enums/role.enum';
-import Permission from '../utils/permission.type';
+import Product from '../../products/entities/product.entity';
+import Category from '../../categories/category.entity';
+import { Role } from '../../utils/enums/role.enum';
+import Permission from '../../utils/permission.type';
 import Address from './address.entity';
-import Discount from '../discounts/discounts.entity';
+import Discount from '../../discounts/discounts.entity';
+import Order from '../../order/entities/order.entity';
 
 @Entity()
 class User {
@@ -48,7 +48,6 @@ class User {
     eager: true,
     cascade: true
   })
-  @JoinColumn()
   public address: Address;
 
   @Column({ nullable: true })
@@ -69,6 +68,9 @@ class User {
 
   @OneToMany(() => Discount, (discount) => discount.owner)
   public discounts: Discount[];
+
+  @OneToMany(() => Order, (order) => order.customer)
+  public orders: Order[];
 
   @CreateDateColumn({ type: 'timestamp' })
   public createdAt: Date;

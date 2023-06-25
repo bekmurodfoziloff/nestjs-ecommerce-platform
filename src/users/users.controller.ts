@@ -36,14 +36,14 @@ export class UsersController {
       const { id } = req.user;
       const cachedUser = await this.redisCacheService.getValue(`user:${id}`);
       if (cachedUser) {
-        response.status(HttpStatus.OK).json(JSON.parse(cachedUser));
+        response.status(HttpStatus.OK).json(cachedUser);
       } else {
         const user = await this.usersService.getUserById(Number(id));
-        await this.redisCacheService.setValue(`user:${id}`, JSON.stringify(user));
+        await this.redisCacheService.setValue(`user:${id}`, user);
         response.status(HttpStatus.OK).json(user);
       }
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -53,10 +53,10 @@ export class UsersController {
     try {
       const { id } = req.user;
       const updatedUser = await this.usersService.updateUser(Number(id), userData);
-      await this.redisCacheService.setValue(`user:${id}`, JSON.stringify(updatedUser));
+      await this.redisCacheService.setValue(`user:${id}`, updatedUser);
       response.status(HttpStatus.OK).json(updatedUser);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -69,7 +69,7 @@ export class UsersController {
       await this.redisCacheService.deleteValue(`user:${id}`);
       response.status(HttpStatus.OK).json(deletedResponse);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -80,7 +80,7 @@ export class UsersController {
       const changePasswordResponse = await this.usersService.changePassword(Number(req.user.id), passwordData);
       response.status(HttpStatus.OK).json(changePasswordResponse);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -91,7 +91,7 @@ export class UsersController {
       const changeEmailResponse = await this.usersService.changeEmail(Number(req.user.id), emailData);
       response.status(HttpStatus.OK).json(changeEmailResponse);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -101,10 +101,10 @@ export class UsersController {
     try {
       const { id } = req.user;
       const updatedAddress = await this.usersService.updateAddress(Number(id), addressData);
-      await this.redisCacheService.setValue(`user:${id}`, JSON.stringify(updatedAddress));
+      await this.redisCacheService.setValue(`user:${id}`, updatedAddress);
       response.status(HttpStatus.OK).json(updatedAddress);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -129,10 +129,10 @@ export class UsersController {
     try {
       const { id } = req.user;
       const updatedUser = await this.usersService.addAvatar(Number(id), file.path);
-      await this.redisCacheService.setValue(`user:${id}`, JSON.stringify(updatedUser));
+      await this.redisCacheService.setValue(`user:${id}`, updatedUser);
       response.status(HttpStatus.OK).json(updatedUser);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 }

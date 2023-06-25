@@ -9,12 +9,13 @@ import {
   ManyToMany,
   JoinTable,
   OneToOne,
-  JoinColumn
+  OneToMany
 } from 'typeorm';
-import User from '../users/user.entity';
-import Category from '../categories/category.entity';
+import User from '../../users/entities/user.entity';
+import Category from '../../categories/category.entity';
 import Inventory from './inventory.entity';
-import Discount from '../discounts/discounts.entity';
+import Discount from '../../discounts/discounts.entity';
+import OrderProduct from '../../order/entities/orderProduct.entity';
 
 @Entity()
 class Product {
@@ -49,11 +50,13 @@ class Product {
     eager: true,
     cascade: true
   })
-  @JoinColumn()
   public inventory: Inventory;
 
   @ManyToOne(() => Discount, (discount) => discount.products)
   public discount: Discount;
+
+  @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.product)
+  public orderProducts: OrderProduct[];
 
   @CreateDateColumn({ type: 'timestamp' })
   public createdAt: Date;

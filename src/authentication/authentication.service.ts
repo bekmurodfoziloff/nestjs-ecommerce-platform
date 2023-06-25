@@ -15,7 +15,7 @@ export class AuthenticationService {
     private readonly configService: ConfigService
   ) {}
 
-  public async register(registrationData: RegisterDto) {
+  async register(registrationData: RegisterDto) {
     const hashedPassword = await bcrypt.hash(registrationData.password, 10);
     try {
       const createUser = await this.usersService.createUser({
@@ -28,12 +28,11 @@ export class AuthenticationService {
       if (error?.code === PostgresErrorCode.UniqueViolation) {
         throw new HttpException('User with that email already exists', HttpStatus.BAD_REQUEST);
       }
-      console.log(error);
       throw new HttpException('Something went wrong', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  public async getAuthenticatedUser(email: string, plainTextPassword: string) {
+  async getAuthenticatedUser(email: string, plainTextPassword: string) {
     try {
       const user = await this.usersService.getUserByEmail(email);
       await this.verifyPassword(plainTextPassword, user.password);
@@ -51,7 +50,7 @@ export class AuthenticationService {
     }
   }
 
-  public getCookieWithJwtAccessToken(userId: number) {
+  getCookieWithJwtAccessToken(userId: number) {
     const payload: TokenPayload = { userId };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
@@ -62,7 +61,7 @@ export class AuthenticationService {
     )}`;
   }
 
-  public getCookieWithJwtRefreshToken(userId: number) {
+  getCookieWithJwtRefreshToken(userId: number) {
     const payload: TokenPayload = { userId };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
@@ -77,7 +76,7 @@ export class AuthenticationService {
     };
   }
 
-  public getCookiesForLogOut() {
+  getCookiesForLogOut() {
     return ['Authentication=; HttpOnly; Path=/; Max-Age=0', 'Refresh=; HttpOnly; Path=/; Max-Age=0'];
   }
 }

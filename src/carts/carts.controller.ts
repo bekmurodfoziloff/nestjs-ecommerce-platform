@@ -10,8 +10,6 @@ import {
   HttpStatus,
   Body,
   Patch,
-  Param,
-  ParseIntPipe,
   Delete
 } from '@nestjs/common';
 import { Response } from 'express';
@@ -20,11 +18,17 @@ import JwtAuthenticationGuard from '../authentication/guards/jwt-authentication.
 import { CartsService } from './carts.service';
 import { RedisCacheService } from '../redisCache/redisCache.service';
 import RequestWithUser from '../authentication/interfaces/requestWithUser.interface';
-import CreateCartDto from './dto/createCart.dto';
-import UpdateCartDto from './dto/updateCart.dto';
+import AddOrderProductToCart from './dto/addOrderProductToCart.dto';
+import EditOrderProductDto from './dto/editOrderProduct.dto';
+import RemoveOrderProductFromCart from './dto/removeOrderProductFromCart.dto';
+import { Roles } from '../authentication/decorators/roles.decorator';
+import { RolesGuard } from '../authentication/guards/roles.guard';
+import { Role } from '../utils/enums/role.enum';
+import CartNotFoundException from './exceptions/cartNotFound.exception';
 
 @Controller('cart')
-@UseGuards(JwtAuthenticationGuard)
+@UseGuards(JwtAuthenticationGuard, RolesGuard)
+@Roles(Role.User)
 @UseInterceptors(ClassSerializerInterceptor)
 export class CartsController {
   constructor(
@@ -36,77 +40,80 @@ export class CartsController {
   @Get()
   async getCart(@Req() request: RequestWithUser, @Res() response: Response) {
     try {
-      const cachedCart = await this.redisCacheService.getValue(`cartUserId:${request.user.id}`);
-      const cart = request.cookies.cart || JSON.parse(cachedCart ? cachedCart : null) || [];
-      const cartItems = await this.cartsService.getcart(cart);
-      response.status(HttpStatus.OK).json(cartItems);
+      const cachedCart = await this.redisCacheService.getValue(`cartCustomerId:${request.user.id}`);
+      const cart = request.cookies.cart || cachedCart;
+      if (cart) {
+        response.status(HttpStatus.OK).json(cart);
+      }
+      throw new CartNotFoundException();
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
-  @Post('new')
-  async createCart(@Body() cartData: CreateCartDto, @Req() request: RequestWithUser, @Res() response: Response) {
+  @Post('add')
+  async addOrderProductToCart(
+    @Body() cartData: AddOrderProductToCart,
+    @Req() request: RequestWithUser,
+    @Res() response: Response
+  ) {
     try {
-      const { productId, quantity } = cartData;
-      const cachedCart = await this.redisCacheService.getValue(`cartUserId:${request.user.id}`);
-      const cart = request.cookies.cart || JSON.parse(cachedCart ? cachedCart : null) || [];
-      const newCart = await this.cartsService.createCart(cart, productId, quantity);
+      const cachedCart = await this.redisCacheService.getValue(`cartCustomerId:${request.user.id}`);
+      const cart = request.cookies.cart || cachedCart;
+      const newCart = await this.cartsService.addOrderProductToCart(cart, request.user, cartData);
       await this.redisCacheService.setValue(
-        `cartUserId:${request.user.id}`,
-        JSON.stringify(newCart),
+        `cartCustomerId:${request.user.id}`,
+        newCart,
         parseInt(this.configService.get('LONG_CACHE_TTL'))
       );
       response.cookie('cart', newCart, { httpOnly: true, secure: true });
       response.status(HttpStatus.CREATED).json(newCart);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
-  @Patch(':productId/edit')
-  async updateCart(
-    @Body() cartData: UpdateCartDto,
-    @Param('productId', ParseIntPipe) productId: number,
+  @Patch('edit')
+  async editOrderProduct(
+    @Body() cartData: EditOrderProductDto,
     @Req() request: RequestWithUser,
     @Res() response: Response
   ) {
     try {
-      const { quantity } = cartData;
-      const cachedCart = await this.redisCacheService.getValue(`cartUserId:${request.user.id}`);
-      const cart = request.cookies.cart || JSON.parse(cachedCart ? cachedCart : null) || [];
-      const updatedCart = await this.cartsService.updateCart(cart, productId, quantity);
+      const cachedCart = await this.redisCacheService.getValue(`cartCustomerId:${request.user.id}`);
+      const cart = request.cookies.cart || cachedCart;
+      const updatedOrderProduct = await this.cartsService.editOrderProduct(cart, cartData);
       await this.redisCacheService.setValue(
-        `cartUserId:${request.user.id}`,
-        JSON.stringify(updatedCart),
+        `cartCustomerId:${request.user.id}`,
+        updatedOrderProduct,
         parseInt(this.configService.get('LONG_CACHE_TTL'))
       );
-      response.cookie('cart', updatedCart, { httpOnly: true, secure: true });
-      response.status(HttpStatus.OK).json(updatedCart);
+      response.cookie('cart', updatedOrderProduct, { httpOnly: true, secure: true });
+      response.status(HttpStatus.OK).json(updatedOrderProduct);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
-  @Delete(':productId/delete')
-  async deleteCart(
-    @Param('productId', ParseIntPipe) productId: number,
+  @Delete('remove')
+  async removeOrderProductFromCart(
+    @Body() cartData: RemoveOrderProductFromCart,
     @Req() request: RequestWithUser,
     @Res() response: Response
   ) {
     try {
-      const cachedCart = await this.redisCacheService.getValue(`cartUserId:${request.user.id}`);
-      const cart = request.cookies.cart || JSON.parse(cachedCart ? cachedCart : null) || [];
-      const deletedCart = await this.cartsService.deleteCart(cart, productId);
+      const cachedCart = await this.redisCacheService.getValue(`cartCustomerId:${request.user.id}`);
+      const cart = request.cookies.cart || cachedCart;
+      const deletedOrderProduct = await this.cartsService.removeOrderProductFromCart(cart, cartData);
       await this.redisCacheService.setValue(
-        `cartUserId:${request.user.id}`,
-        JSON.stringify(deletedCart),
+        `cartCustomerId:${request.user.id}`,
+        deletedOrderProduct,
         parseInt(this.configService.get('LONG_CACHE_TTL'))
       );
-      response.cookie('cart', deletedCart, { httpOnly: true, secure: true });
-      response.status(HttpStatus.OK).json(deletedCart);
+      response.cookie('cart', deletedOrderProduct, { httpOnly: true, secure: true });
+      response.status(HttpStatus.OK).json(deletedOrderProduct);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 }

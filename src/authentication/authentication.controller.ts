@@ -34,10 +34,10 @@ export class AuthenticationController {
   async register(@Body() registrationData: RegisterDto, @Res() response: Response) {
     try {
       const user = await this.authenticationService.register(registrationData);
-      await this.redisCacheService.setValue(`user:${user.id}`, JSON.stringify(user));
+      await this.redisCacheService.setValue(`user:${user.id}`, user);
       response.status(HttpStatus.CREATED).json(user);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -53,10 +53,10 @@ export class AuthenticationController {
       await this.usersService.setCurrentRefreshToken(refreshToken, user.id);
       request.res.setHeader('Set-Cookie', [accessTokenCookie, refreshTokenCookie]);
       user.password = undefined;
-      await this.redisCacheService.setValue(`user:${user.id}`, JSON.stringify(user));
+      await this.redisCacheService.setValue(`user:${user.id}`, user);
       response.status(HttpStatus.OK).json(user);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -69,7 +69,7 @@ export class AuthenticationController {
       request.res.setHeader('Set-Cookie', this.authenticationService.getCookiesForLogOut());
       response.sendStatus(HttpStatus.OK);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -78,10 +78,10 @@ export class AuthenticationController {
   async authenticate(@Req() request: RequestWithUser, @Res() response: Response) {
     try {
       const { user } = request;
-      await this.redisCacheService.setValue(`user:${user.id}`, JSON.stringify(user));
+      await this.redisCacheService.setValue(`user:${user.id}`, user);
       response.status(HttpStatus.OK).json(user);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -92,10 +92,10 @@ export class AuthenticationController {
       const { user } = request;
       const accessTokenCookie = this.authenticationService.getCookieWithJwtAccessToken(user.id);
       request.res.setHeader('Set-Cookie', accessTokenCookie);
-      await this.redisCacheService.setValue(`user:${user.id}`, JSON.stringify(user));
+      await this.redisCacheService.setValue(`user:${user.id}`, user);
       response.status(HttpStatus.OK).json(user);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 }

@@ -3,7 +3,7 @@ import { DiscountsController } from './discounts.controller';
 import { DiscountsService } from './discounts.service';
 import Discount from './discounts.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { IsUniqueDiscountNameValidator } from 'src/validators/IsUniqueDiscountName.validator';
+import { IsUniqueDiscountNameValidator } from '../validators/IsUniqueDiscountName.validator';
 import { RedisCacheModule } from '../redisCache/redisCache.module';
 
 @Module({

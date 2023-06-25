@@ -1,23 +1,20 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import User from './user.entity';
+import User from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import * as bcrypt from 'bcrypt';
 import UserNotFoundException from './exceptions/userNotFound.exception';
 import UpdateUserDto from './dto/updateUser.dto';
 import ChangePassword from './dto/changePassword.dto';
 import UpdateAddressDto from './dto/updateAddress.dto';
-import Address from './address.entity';
 import ChangeEmailDto from './dto/changeEmail.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
-    @InjectRepository(Address)
-    private addressRepository: Repository<Address>
+    private usersRepository: Repository<User>
   ) {}
 
   async getUserByEmail(email: string): Promise<User> {
@@ -58,9 +55,10 @@ export class UsersService {
   }
 
   async deleteUser(id: number): Promise<void> {
-    const user = await this.getUserById(id);
-    await this.usersRepository.remove(user);
-    await this.addressRepository.remove(user.address);
+    const deletedResponse = await this.usersRepository.delete(id);
+    if (!deletedResponse.affected) {
+      throw new UserNotFoundException(id);
+    }
   }
 
   async findUserByEmail(email: string): Promise<User> {
@@ -121,9 +119,22 @@ export class UsersService {
       where: { id },
       relations: ['categories', 'products', 'address', 'discounts']
     });
-    user.address = addressData;
-    await this.usersRepository.manager.save(user);
     if (user) {
+      if (user.address) {
+        user.address = {
+          id: user.address.id,
+          street: addressData.street ? addressData.street : user.address.street,
+          city: addressData.city ? addressData.city : user.address.city,
+          country: addressData.country ? addressData.country : user.address.country,
+          postalCode: addressData.postalCode ? addressData.postalCode : user.address.postalCode,
+          telephone: addressData.telephone ? addressData.telephone : user.address.telephone,
+          mobile: addressData.mobile ? addressData.mobile : user.address.mobile
+        };
+        await this.usersRepository.manager.save(user);
+        return user;
+      }
+      user.address = addressData;
+      await this.usersRepository.manager.save(user);
       return user;
     }
     throw new UserNotFoundException(id);

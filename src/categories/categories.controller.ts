@@ -9,6 +9,7 @@ import {
   Req,
   Res,
   HttpStatus,
+  Query,
   UseGuards,
   UseInterceptors,
   ClassSerializerInterceptor
@@ -37,18 +38,18 @@ export class CategoriesController {
   ) {}
 
   @Get()
-  async getAllCategories(@Res() response: Response) {
+  async getAllCategories(@Query('page') page: number, @Res() response: Response) {
     try {
       const cachedCategories = await this.redisCacheService.getValue('categories');
-      if (cachedCategories) {
-        response.status(HttpStatus.OK).json(JSON.parse(cachedCategories));
+      if (cachedCategories && !page) {
+        response.status(HttpStatus.OK).json(cachedCategories);
       } else {
-        const categories = await this.categoriesService.getAllCategories();
-        await this.redisCacheService.setValue('categories', JSON.stringify(categories));
+        const categories = await this.categoriesService.getAllCategories(page);
+        await this.redisCacheService.setValue('categories', categories);
         response.status(HttpStatus.OK).json(categories);
       }
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -57,14 +58,14 @@ export class CategoriesController {
     try {
       const cachedCategory = await this.redisCacheService.getValue(`category:${id}`);
       if (cachedCategory) {
-        response.status(HttpStatus.OK).json(JSON.parse(cachedCategory));
+        response.status(HttpStatus.OK).json(cachedCategory);
       } else {
         const category = await this.categoriesService.getCategoryById(Number(id));
-        await this.redisCacheService.setValue(`category:${id}`, JSON.stringify(category));
+        await this.redisCacheService.setValue(`category:${id}`, category);
         response.status(HttpStatus.OK).json(category);
       }
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -79,10 +80,10 @@ export class CategoriesController {
   ) {
     try {
       const newCategory = await this.categoriesService.createCategory(categoryData, request.user);
-      await this.redisCacheService.setValue(`category:${newCategory.id}`, JSON.stringify(newCategory));
+      await this.redisCacheService.setValue(`category:${newCategory.id}`, newCategory);
       response.status(HttpStatus.CREATED).json(newCategory);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -90,13 +91,17 @@ export class CategoriesController {
   @UseGuards(JwtAuthenticationGuard, RolesGuard, PermissionsGuard)
   @Roles(Role.Admin)
   @Permissions(Permission.UpdateCategory)
-  async updateCategory(@Param() { id }: FindOneParams, @Body() category: UpdateCategoryDto, @Res() response: Response) {
+  async updateCategory(
+    @Param() { id }: FindOneParams,
+    @Body() categoryData: UpdateCategoryDto,
+    @Res() response: Response
+  ) {
     try {
-      const updateCategory = await this.categoriesService.updateCategory(Number(id), category);
-      await this.redisCacheService.setValue(`category:${id}`, JSON.stringify(updateCategory));
-      response.status(HttpStatus.OK).json(updateCategory);
+      const updatedCategory = await this.categoriesService.updateCategory(Number(id), categoryData);
+      await this.redisCacheService.setValue(`category:${id}`, updatedCategory);
+      response.status(HttpStatus.OK).json(updatedCategory);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 
@@ -110,7 +115,7 @@ export class CategoriesController {
       await this.redisCacheService.deleteValue(`category:${id}`);
       response.status(HttpStatus.OK).json(deletedResponse);
     } catch (error) {
-      response.status(error.status).json(error.message);
+      response.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
     }
   }
 }

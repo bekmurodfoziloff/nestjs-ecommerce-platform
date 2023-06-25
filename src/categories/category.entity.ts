@@ -8,8 +8,8 @@ import {
   UpdateDateColumn,
   DeleteDateColumn
 } from 'typeorm';
-import Product from '../products/product.entity';
-import User from '../users/user.entity';
+import Product from '../products/entities/product.entity';
+import User from '../users/entities/user.entity';
 
 @Entity()
 class Category {
@@ -22,12 +22,14 @@ class Category {
   @Column()
   public description: string;
 
-  @ManyToOne(() => User, (user) => user.products, {
+  @ManyToOne(() => User, (user) => user.categories, {
     onDelete: 'CASCADE'
   })
   public owner: User;
 
-  @ManyToMany(() => Product, (product: Product) => product.categories)
+  @ManyToMany(() => Product, (product: Product) => product.categories, {
+    onDelete: 'CASCADE'
+  })
   public products: Product[];
 
   @CreateDateColumn({ type: 'timestamp' })

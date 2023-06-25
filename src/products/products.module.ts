@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import Product from './product.entity';
+import Product from './entities/product.entity';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { IsUniqueProductNameValidator } from '../validators/IsUniqueProductName.validator';
-import Inventory from './inventory.entity';
+import Inventory from './entities/inventory.entity';
 import { RedisCacheModule } from '../redisCache/redisCache.module';
 
 @Module({
